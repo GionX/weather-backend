@@ -27,8 +27,9 @@ const cities = {
   // Add more cities here following the same format
 };
 
-// In-memory cache (stores weather data for 4 hours)
-const cache = new Map();
+// Separate caches for weather and sun data
+const weatherCache = new Map();  // 4 hour TTL
+const sunCache = new Map();       // 24 hour TTL (sun data changes daily)
 
 // Enable CORS so your React Native app can call this
 app.use((req, res, next) => {
@@ -37,7 +38,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Weather endpoint
+// ============ WEATHER ENDPOINT ============
 app.get('/weather/:city', async (req, res) => {
   const cityName = req.params.city.toLowerCase();
   const city = cities[cityName];
@@ -50,22 +51,20 @@ app.get('/weather/:city', async (req, res) => {
   }
   
   // Check cache (4 hour TTL)
-  const cached = cache.get(cityName);
+  const cached = weatherCache.get(cityName);
   const now = Date.now();
   
   if (cached && (now - cached.timestamp) < 14400000) { // 4 hours
-    console.log(`✅ Cache hit: ${cityName} (${Math.round((now - cached.timestamp) / 1000 / 60)} minutes old)`);
-    return res.json(cached.weather);
+    console.log(`✅ Weather cache hit: ${cityName} (${Math.round((now - cached.timestamp) / 1000 / 60)} minutes old)`);
+    return res.json(cached.data);
   }
   
   console.log(`🌐 Fetching fresh weather for: ${cityName}`);
   
   try {
-    // Round to 4 decimals as required by MET Norway
     const lat = city.lat.toFixed(4);
     const lon = city.lon.toFixed(4);
     
-    // Call MET Norway API
     const response = await fetch(
       `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`,
       {
@@ -84,7 +83,6 @@ app.get('/weather/:city', async (req, res) => {
     const symbolCode = current.next_1_hours?.summary.symbol_code ||
                        current.current?.summary.symbol_code;
     
-    // Map MET Norway codes to your weather modes
     const weatherMap = {
       'clearsky': 'clear',
       'fair': 'clear',
@@ -113,9 +111,8 @@ app.get('/weather/:city', async (req, res) => {
       city: cityName
     };
     
-    // Store in cache
-    cache.set(cityName, {
-      weather: weather,
+    weatherCache.set(cityName, {
+      data: weather,
       timestamp: now
     });
     
@@ -130,7 +127,184 @@ app.get('/weather/:city', async (req, res) => {
   }
 });
 
-// List all available cities
+// ============ SUNRISE/SUNSET ENDPOINT ============
+app.get('/sun/:city', async (req, res) => {
+  const cityName = req.params.city.toLowerCase();
+  const city = cities[cityName];
+  
+  if (!city) {
+    return res.status(404).json({ 
+      error: 'City not found',
+      availableCities: Object.keys(cities)
+    });
+  }
+  
+  // Get date from query parameter, default to today
+  const date = req.query.date || new Date().toISOString().split('T')[0];
+  
+  // Check cache (24 hour TTL for sun data)
+  const cacheKey = `sun_${cityName}_${date}`;
+  const cached = sunCache.get(cacheKey);
+  const now = Date.now();
+  
+  if (cached && (now - cached.timestamp) < 86400000) { // 24 hours
+    console.log(`✅ Sun cache hit: ${cityName} on ${date}`);
+    return res.json(cached.data);
+  }
+  
+  console.log(`🌅 Fetching sun data for: ${cityName} on ${date}`);
+  
+  try {
+    const lat = city.lat.toFixed(4);
+    const lon = city.lon.toFixed(4);
+    
+    const response = await fetch(
+      `https://api.met.no/weatherapi/sunrise/2.0/?lat=${lat}&lon=${lon}&date=${date}`,
+      {
+        headers: {
+          'User-Agent': 'WeatherEffectsApp/1.0 (your-email@example.com)' // CHANGE THIS EMAIL
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`MET Sun API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Calculate day and night duration
+    const sunriseTime = data.properties.sunrise?.time;
+    const sunsetTime = data.properties.sunset?.time;
+    
+    let dayDuration = null;
+    let nightDuration = null;
+    
+    if (sunriseTime && sunsetTime) {
+      const sunrise = new Date(sunriseTime);
+      const sunset = new Date(sunsetTime);
+      const dayMs = sunset - sunrise;
+      const dayHours = Math.floor(dayMs / 3600000);
+      const dayMinutes = Math.floor((dayMs % 3600000) / 60000);
+      dayDuration = `${dayHours}h ${dayMinutes}m`;
+      
+      // Night duration = 24 hours - day duration
+      const nightMs = 86400000 - dayMs;
+      const nightHours = Math.floor(nightMs / 3600000);
+      const nightMinutes = Math.floor((nightMs % 3600000) / 60000);
+      nightDuration = `${nightHours}h ${nightMinutes}m`;
+    }
+    
+    // Extract useful sun data
+    const sunData = {
+      city: cityName,
+      date: date,
+      sunrise: sunriseTime,
+      sunset: sunsetTime,
+      dayDuration: dayDuration,
+      nightDuration: nightDuration,
+      twilight: {
+        civilDawn: data.properties.sun_altitude?.civil_twilight_start,
+        civilDusk: data.properties.sun_altitude?.civil_twilight_end,
+        nauticalDawn: data.properties.sun_altitude?.nautical_twilight_start,
+        nauticalDusk: data.properties.sun_altitude?.nautical_twilight_end,
+        astronomicalDawn: data.properties.sun_altitude?.astronomical_twilight_start,
+        astronomicalDusk: data.properties.sun_altitude?.astronomical_twilight_end
+      },
+      moon: {
+        phase: data.properties.moon_phase?.description,
+        phaseValue: data.properties.moon_phase?.value,
+        highMoon: data.properties.high_moon?.time,
+        lowMoon: data.properties.low_moon?.time
+      }
+    };
+    
+    // Store in cache
+    sunCache.set(cacheKey, {
+      data: sunData,
+      timestamp: now
+    });
+    
+    res.json(sunData);
+    
+  } catch (error) {
+    console.error(`❌ Error fetching sun data for ${cityName}:`, error.message);
+    res.status(500).json({ 
+      error: 'Sun data service unavailable',
+      message: error.message
+    });
+  }
+});
+
+// ============ SUNRISE/SUNSET WITH DATE RANGE ============
+app.get('/sunrange/:city', async (req, res) => {
+  const cityName = req.params.city.toLowerCase();
+  const city = cities[cityName];
+  
+  if (!city) {
+    return res.status(404).json({ 
+      error: 'City not found',
+      availableCities: Object.keys(cities)
+    });
+  }
+  
+  // Get start and end dates (default to this week)
+  const startDate = req.query.start || new Date().toISOString().split('T')[0];
+  const endDate = req.query.end || (() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date.toISOString().split('T')[0];
+  })();
+  
+  console.log(`📅 Fetching sun data for ${cityName} from ${startDate} to ${endDate}`);
+  
+  try {
+    const lat = city.lat.toFixed(4);
+    const lon = city.lon.toFixed(4);
+    
+    const response = await fetch(
+      `https://api.met.no/weatherapi/sunrise/2.0/?lat=${lat}&lon=${lon}&from=${startDate}&to=${endDate}`,
+      {
+        headers: {
+          'User-Agent': 'WeatherEffectsApp/1.0 (your-email@example.com)'
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error(`MET Sun API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Process the data
+    const results = [];
+    for (const item of data.properties.sunrise) {
+      results.push({
+        date: item.date,
+        sunrise: item.time,
+        sunset: item.sunset?.time,
+        dayDuration: item.day_duration
+      });
+    }
+    
+    res.json({
+      city: cityName,
+      startDate: startDate,
+      endDate: endDate,
+      data: results
+    });
+    
+  } catch (error) {
+    console.error(`❌ Error fetching sun range data:`, error.message);
+    res.status(500).json({ 
+      error: 'Sun data service unavailable',
+      message: error.message
+    });
+  }
+});
+
+// ============ LIST ALL AVAILABLE CITIES ============
 app.get('/cities', (req, res) => {
   res.json({
     count: Object.keys(cities).length,
@@ -138,37 +312,60 @@ app.get('/cities', (req, res) => {
   });
 });
 
-// Cache statistics
+// ============ CACHE STATISTICS ============
 app.get('/stats', (req, res) => {
-  const stats = {};
+  const weatherStats = {};
+  const sunStats = {};
   const now = Date.now();
-  for (const [city, data] of cache.entries()) {
+  
+  for (const [city, data] of weatherCache.entries()) {
     const ageMinutes = Math.round((now - data.timestamp) / 1000 / 60);
-    stats[city] = {
+    weatherStats[city] = {
       age: `${ageMinutes} minutes`,
-      condition: data.weather.condition,
-      temperature: data.weather.temperature
+      condition: data.data.condition,
+      temperature: data.data.temperature
     };
   }
+  
+  for (const [key, data] of sunCache.entries()) {
+    const ageHours = Math.round((now - data.timestamp) / 1000 / 60 / 60);
+    sunStats[key] = `${ageHours} hours old`;
+  }
+  
   res.json({
-    cachedCities: Object.keys(stats).length,
-    details: stats
+    weatherCache: {
+      count: Object.keys(weatherStats).length,
+      details: weatherStats
+    },
+    sunCache: {
+      count: Object.keys(sunStats).length,
+      details: sunStats
+    }
   });
 });
 
-// Health check
+// ============ HEALTH CHECK ============
 app.get('/', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'Weather API is running',
-    cacheDuration: '4 hours',
-    availableCities: Object.keys(cities).length
+    message: 'Weather & Sun API is running',
+    weatherCacheDuration: '4 hours',
+    sunCacheDuration: '24 hours',
+    availableCities: Object.keys(cities).length,
+    endpoints: {
+      weather: '/weather/:city',
+      sun: '/sun/:city',
+      sunRange: '/sunrange/:city?start=YYYY-MM-DD&end=YYYY-MM-DD',
+      cities: '/cities',
+      stats: '/stats'
+    }
   });
 });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`✅ Weather API running on port ${port}`);
-  console.log(`📡 Cache duration: 4 hours`);
+  console.log(`✅ Weather & Sun API running on port ${port}`);
+  console.log(`📡 Weather cache: 4 hours`);
+  console.log(`🌅 Sun cache: 24 hours`);
   console.log(`🌆 Cities available: ${Object.keys(cities).length}`);
 });
