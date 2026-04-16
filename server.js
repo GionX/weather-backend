@@ -3,26 +3,68 @@ const app = express();
 
 // ============ YOUR MAJOR CITIES ============
 const cities = {
-  'newyork': { lat: 40.7128, lon: -74.0060 },
-  'losangeles': { lat: 34.0522, lon: -118.2437 },
-  'chicago': { lat: 41.8781, lon: -87.6298 },
-  'houston': { lat: 29.7604, lon: -95.3698 },
-  'phoenix': { lat: 33.4484, lon: -112.0740 },
-  'philadelphia': { lat: 39.9526, lon: -75.1652 },
-  'sanantonio': { lat: 29.4241, lon: -98.4936 },
-  'sandiego': { lat: 32.7157, lon: -117.1611 },
-  'dallas': { lat: 32.7767, lon: -96.7970 },
-  'austin': { lat: 30.2672, lon: -97.7431 },
-  'london': { lat: 51.5074, lon: -0.1278 },
-  'paris': { lat: 48.8566, lon: 2.3522 },
-  'tokyo': { lat: 35.6762, lon: 139.6503 },
-  'sydney': { lat: -33.8688, lon: 151.2093 },
-  'berlin': { lat: 52.5200, lon: 13.4050 },
-  'moscow': { lat: 55.7558, lon: 37.6173 },
-  'mumbai': { lat: 19.0760, lon: 72.8777 },
-  'beijing': { lat: 39.9042, lon: 116.4074 },
-  'cairo': { lat: 30.0444, lon: 31.2357 },
-  'mexicocity': { lat: 19.4326, lon: -99.1332 }
+  // ============ HIGH RAINFALL CITIES (April) ============
+  'london': { lat: 51.5074, lon: -0.1278 },        // UK - April showers
+  'manchester': { lat: 53.4808, lon: -2.2426 },    // UK - Very rainy
+  'glasgow': { lat: 55.8642, lon: -4.2518 },       // Scotland - High rainfall
+  'amsterdam': { lat: 52.3676, lon: 4.9041 },      // Netherlands - Rainy Aprils
+  'brussels': { lat: 50.8503, lon: 4.3517 },       // Belgium - Frequent rain
+  'paris': { lat: 48.8566, lon: 2.3522 },          // France - Spring showers
+  'zurich': { lat: 47.3769, lon: 8.5417 },         // Switzerland - April rain
+  
+  // ============ TROPICAL RAIN CITIES ============
+  'singapore': { lat: 1.3521, lon: 103.8198 },     // Singapore - Daily rain
+  'jakarta': { lat: -6.2088, lon: 106.8456 },      // Indonesia - Heavy rain
+  'bangkok': { lat: 13.7367, lon: 100.5231 },      // Thailand - Rainy season
+  'manila': { lat: 14.5995, lon: 120.9842 },       // Philippines - High rain
+  'mumbai': { lat: 19.0760, lon: 72.8777 },        // India - Pre-monsoon rain
+  'chennai': { lat: 13.0827, lon: 80.2707 },       // India - Humid with rain
+  'kualalumpur': { lat: 3.1390, lon: 101.6869 },   // Malaysia - Daily rain
+  
+  // ============ PACIFIC NORTHWEST (Rainy Aprils) ============
+  'seattle': { lat: 47.6062, lon: -122.3321 },     // USA - Very rainy April
+  'vancouver': { lat: 49.2827, lon: -123.1207 },   // Canada - Rainy spring
+  'portland': { lat: 45.5152, lon: -122.6784 },    // USA - High April rainfall
+  
+  // ============ SOUTH AMERICAN RAIN ============
+  'riodejaneiro': { lat: -22.9068, lon: -43.1729 }, // Brazil - Rain possible
+  'bogota': { lat: 4.7110, lon: -74.0721 },        // Colombia - Frequent rain
+  'lima': { lat: -12.0464, lon: -77.0428 },        // Peru - Light rain possible
+  
+  // ============ AFRICAN RAIN ============
+  'lagos': { lat: 6.5244, lon: 3.3792 },           // Nigeria - Heavy rain
+  'nairobi': { lat: -1.2921, lon: 36.8219 },       // Kenya - Rainy season
+  'addisababa': { lat: 9.0320, lon: 38.7468 },     // Ethiopia - Spring rain
+  
+  // ============ AUSTRALIAN/ASIAN RAIN ============
+  'sydney': { lat: -33.8688, lon: 151.2093 },      // Australia - April showers
+  'auckland': { lat: -36.8485, lon: 174.7633 },    // New Zealand - High rain
+  'hongkong': { lat: 22.3193, lon: 114.1694 },     // China - Humid with rain
+  'taipei': { lat: 25.0330, lon: 121.5654 },       // Taiwan - Frequent rain
+  'osaka': { lat: 34.6937, lon: 135.5023 },        // Japan - Spring rain
+  
+  // ============ EUROPEAN RAIN ============
+  'dublin': { lat: 53.3498, lon: -6.2603 },        // Ireland - Very rainy
+  'edinburgh': { lat: 55.9533, lon: -3.1883 },     // Scotland - High rain
+  'bergen': { lat: 60.3913, lon: 5.3221 },         // Norway - Rain capital
+  'copenhagen': { lat: 55.6761, lon: 12.5683 },    // Denmark - April showers
+  
+  // ============ NORTH AMERICAN RAIN ============
+  'miami': { lat: 25.7617, lon: -80.1918 },        // USA - Thunderstorms
+  'orlando': { lat: 28.5383, lon: -81.3792 },      // USA - Afternoon rain
+  'neworleans': { lat: 29.9511, lon: -90.0715 },   // USA - High humidity/rain
+  'atlanta': { lat: 33.7490, lon: -84.3880 },      // USA - Spring storms
+  
+  // ============ CLEAR SKY CITIES (For comparison) ============
+  'cairo': { lat: 30.0444, lon: 31.2357 },         // Egypt - Dry
+  'dubai': { lat: 25.2048, lon: 55.2708 },         // UAE - Sunny
+  'losangeles': { lat: 34.0522, lon: -118.2437 },  // USA - Dry spring
+  'phoenix': { lat: 33.4484, lon: -112.0740 },     // USA - Desert dry
+  
+  // ============ SNOW POSSIBILITIES (High altitude) ============
+  'denver': { lat: 39.7392, lon: -104.9903 },      // USA - Late snow possible
+  'calgary': { lat: 51.0447, lon: -114.0719 },     // Canada - April snow
+  'anchorage': { lat: 61.2181, lon: -149.9003 }    // USA - Still snow in April
 };
 
 // Cache for weather data (4 hours)
