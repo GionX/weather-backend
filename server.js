@@ -55,16 +55,70 @@ const cities = {
   'neworleans': { lat: 29.9511, lon: -90.0715 },   // USA - High humidity/rain
   'atlanta': { lat: 33.7490, lon: -84.3880 },      // USA - Spring storms
   
+  // ============ NEW YORK & EAST COAST ============
+  'newyork': { lat: 40.7128, lon: -74.0060 },      // USA - New York City
+  'newyorkcity': { lat: 40.7128, lon: -74.0060 },  // USA - New York City alias
+  'nyc': { lat: 40.7128, lon: -74.0060 },          // USA - NYC alias
+  'boston': { lat: 42.3601, lon: -71.0589 },       // USA - Boston
+  'washington': { lat: 38.9072, lon: -77.0369 },   // USA - Washington DC
+  'philadelphia': { lat: 39.9526, lon: -75.1652 }, // USA - Philadelphia
+  'chicago': { lat: 41.8781, lon: -87.6298 },      // USA - Chicago
+  'detroit': { lat: 42.3314, lon: -83.0458 },      // USA - Detroit
+  
+  // ============ WEST COAST ============
+  'losangeles': { lat: 34.0522, lon: -118.2437 },  // USA - Los Angeles
+  'la': { lat: 34.0522, lon: -118.2437 },          // USA - LA alias
+  'sandiego': { lat: 32.7157, lon: -117.1611 },    // USA - San Diego
+  'sanfrancisco': { lat: 37.7749, lon: -122.4194 }, // USA - San Francisco
+  'sf': { lat: 37.7749, lon: -122.4194 },          // USA - SF alias
+  'oakland': { lat: 37.8044, lon: -122.2712 },     // USA - Oakland
+  'sanjose': { lat: 37.3382, lon: -121.8863 },     // USA - San Jose
+  
+  // ============ SOUTHERN USA ============
+  'austin': { lat: 30.2672, lon: -97.7431 },       // USA - Austin
+  'dallas': { lat: 32.7767, lon: -96.7970 },       // USA - Dallas
+  'houston': { lat: 29.7604, lon: -95.3698 },      // USA - Houston
+  'nashville': { lat: 36.1627, lon: -86.7816 },    // USA - Nashville
+  'charlotte': { lat: 35.2271, lon: -80.8431 },    // USA - Charlotte
+  
+  // ============ MOUNTAIN WEST ============
+  'denver': { lat: 39.7392, lon: -104.9903 },      // USA - Late snow possible
+  'saltlakecity': { lat: 40.7608, lon: -111.8910 }, // USA - Salt Lake City
+  'lasvegas': { lat: 36.1699, lon: -115.1398 },    // USA - Las Vegas
+  'phoenix': { lat: 33.4484, lon: -112.0740 },     // USA - Desert dry
+  'tucson': { lat: 32.2226, lon: -110.9747 },      // USA - Tucson
+  
+  // ============ CANADIAN CITIES ============
+  'toronto': { lat: 43.6532, lon: -79.3832 },      // Canada - Toronto
+  'montreal': { lat: 45.5017, lon: -73.5673 },     // Canada - Montreal
+  'ottawa': { lat: 45.4215, lon: -75.6972 },       // Canada - Ottawa
+  'calgary': { lat: 51.0447, lon: -114.0719 },     // Canada - April snow
+  'edmonton': { lat: 53.5461, lon: -113.4938 },    // Canada - Edmonton
+  'anchorage': { lat: 61.2181, lon: -149.9003 },   // USA - Still snow in April
+  
   // ============ CLEAR SKY CITIES (For comparison) ============
   'cairo': { lat: 30.0444, lon: 31.2357 },         // Egypt - Dry
   'dubai': { lat: 25.2048, lon: 55.2708 },         // UAE - Sunny
-  'losangeles': { lat: 34.0522, lon: -118.2437 },  // USA - Dry spring
-  'phoenix': { lat: 33.4484, lon: -112.0740 },     // USA - Desert dry
   
-  // ============ SNOW POSSIBILITIES (High altitude) ============
-  'denver': { lat: 39.7392, lon: -104.9903 },      // USA - Late snow possible
-  'calgary': { lat: 51.0447, lon: -114.0719 },     // Canada - April snow
-  'anchorage': { lat: 61.2181, lon: -149.9003 }    // USA - Still snow in April
+  // ============ EUROPEAN ADDITIONS ============
+  'berlin': { lat: 52.5200, lon: 13.4050 },        // Germany - Berlin
+  'munich': { lat: 48.1351, lon: 11.5820 },        // Germany - Munich
+  'vienna': { lat: 48.2082, lon: 16.3738 },        // Austria - Vienna
+  'prague': { lat: 50.0755, lon: 14.4378 },        // Czech Republic - Prague
+  'budapest': { lat: 47.4979, lon: 19.0402 },      // Hungary - Budapest
+  'warsaw': { lat: 52.2297, lon: 21.0122 },        // Poland - Warsaw
+  'madrid': { lat: 40.4168, lon: -3.7038 },        // Spain - Madrid
+  'barcelona': { lat: 41.3851, lon: 2.1734 },      // Spain - Barcelona
+  'rome': { lat: 41.9028, lon: 12.4964 },          // Italy - Rome
+  'milan': { lat: 45.4642, lon: 9.1900 },          // Italy - Milan
+  
+  // ============ ASIAN ADDITIONS ============
+  'tokyo': { lat: 35.6762, lon: 139.6503 },        // Japan - Tokyo
+  'seoul': { lat: 37.5665, lon: 126.9780 },        // South Korea - Seoul
+  'beijing': { lat: 39.9042, lon: 116.4074 },      // China - Beijing
+  'shanghai': { lat: 31.2304, lon: 121.4737 },     // China - Shanghai
+  'delhi': { lat: 28.6139, lon: 77.2090 },         // India - Delhi
+  'bangalore': { lat: 12.9716, lon: 77.5946 },     // India - Bangalore
 };
 
 // Cache for weather data (4 hours)
