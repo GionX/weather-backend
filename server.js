@@ -229,7 +229,7 @@ app.get('/weather/:city', async (req, res) => {
       `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`,
       {
         headers: {
-          'User-Agent': 'WeatherEffectsApp/1.0 (your-email@example.com)'
+          'User-Agent': 'WeatherEffectsApp/1.0 (mihajlotobdzic@gmail.com)'
         }
       }
     );
@@ -323,7 +323,7 @@ app.get('/weather/:city/forecast', async (req, res) => {
       `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`,
       {
         headers: {
-          'User-Agent': 'WeatherEffectsApp/1.0 (your-email@example.com)'
+          'User-Agent': 'WeatherEffectsApp/1.0 (mihajlotobdzic@gmail.com)'
         }
       }
     );
